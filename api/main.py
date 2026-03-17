@@ -9,8 +9,10 @@ Endpoints:
   GET  /stats    – index statistics
 """
 
+
 from __future__ import annotations
 
+import os
 import shutil
 import time
 from pathlib import Path
@@ -47,19 +49,14 @@ app.add_middleware(
 _pipeline: RAGPipeline | None = None
 
 
-@app.on_event("startup")
-async def startup_event() -> None:
+def get_pipeline() -> RAGPipeline:
     global _pipeline
 
-    logger.info("Initialising RAG pipeline…")
-
-    try:
+    if _pipeline is None:
+        print("⚡ Initializing pipeline...")
         _pipeline = RAGPipeline()
-        logger.info(f"Pipeline ready. Indexed chunks: {_pipeline.num_chunks}")
 
-    except Exception as exc:
-        logger.error(f"Pipeline initialization failed: {exc}")
-        raise
+    return _pipeline
 
 
 def get_pipeline() -> RAGPipeline:
@@ -281,3 +278,13 @@ async def reset_index() -> dict:
     return {
         "message": "Vector store cleared."
     }
+
+@app.get("/")
+def root():
+    return {"status": "running"}
+    
+    
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("api.main:app", host="0.0.0.0", port=port)
