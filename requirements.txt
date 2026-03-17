@@ -1,19 +1,18 @@
 fastapi
-uvicorn[standard]
+uvicorn
 pydantic
-httpx
 python-multipart
 
-pypdf
-tiktoken
-
 sentence-transformers
+transformers
 faiss-cpu
+numpy
+scikit-learn
 rank-bm25
 
-numpy
+torch==2.2.2+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 
-streamlit
-requests
-huggingface_hub
 python-dotenv
+requests
+pypdf

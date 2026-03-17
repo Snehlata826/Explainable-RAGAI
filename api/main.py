@@ -11,7 +11,6 @@ Endpoints:
 
 from __future__ import annotations
 
-import os
 import shutil
 import time
 from pathlib import Path
@@ -44,25 +43,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Pipeline (Lazy Loading) ────────────────────────────────────────────────
-
+# Singleton pipeline – loaded once on startup
 _pipeline: RAGPipeline | None = None
 
 
-def get_pipeline() -> RAGPipeline:
+@app.on_event("startup")
+async def startup_event() -> None:
     global _pipeline
 
-    if _pipeline is None:
-        logger.info("⚡ Initializing pipeline (lazy)...")
-        _pipeline = RAGPipeline()
+    logger.info("Initialising RAG pipeline…")
 
+    try:
+        _pipeline = RAGPipeline()
+        logger.info(f"Pipeline ready. Indexed chunks: {_pipeline.num_chunks}")
+
+    except Exception as exc:
+        logger.error(f"Pipeline initialization failed: {exc}")
+        raise
+
+
+def get_pipeline() -> RAGPipeline:
+    if _pipeline is None:
+        raise RuntimeError("Pipeline not initialised.")
     return _pipeline
 
 
 # ── Request / Response schemas ─────────────────────────────────────────────
 
 class QueryRequest(BaseModel):
-    question: str = Field(..., min_length=3)
+    question: str = Field(..., min_length=3, description="User question")
 
 
 class SourceModel(BaseModel):
@@ -102,13 +111,11 @@ class HealthResponse(BaseModel):
 
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
-@app.get("/")
-def root():
-    return {"status": "running"}
-
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check() -> HealthResponse:
+    """Return service health and readiness."""
+
     pipeline = get_pipeline()
 
     try:
@@ -125,6 +132,8 @@ async def health_check() -> HealthResponse:
 
 @app.get("/stats", tags=["System"])
 async def stats() -> dict:
+    """Return index statistics."""
+
     pipeline = get_pipeline()
 
     return {
@@ -134,7 +143,12 @@ async def stats() -> dict:
 
 @app.post("/upload", response_model=UploadResponse, tags=["Documents"])
 async def upload_document(file: UploadFile = File(...)) -> UploadResponse:
+    """
+    Upload and ingest a PDF or TXT document.
+    """
+
     allowed = {".pdf", ".txt", ".md"}
+
     suffix = Path(file.filename or "").suffix.lower()
 
     if suffix not in allowed:
@@ -144,11 +158,13 @@ async def upload_document(file: UploadFile = File(...)) -> UploadResponse:
         )
 
     dest = DATA_DIR / (file.filename or "upload")
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     try:
         with open(dest, "wb") as f:
             shutil.copyfileobj(file.file, f)
+
     except Exception as exc:
         logger.error(f"File save error: {exc}")
         raise HTTPException(status_code=500, detail="Failed to save file.")
@@ -157,6 +173,7 @@ async def upload_document(file: UploadFile = File(...)) -> UploadResponse:
 
     try:
         chunks_added = pipeline.ingest(dest)
+
     except Exception as exc:
         logger.error(f"Ingestion error: {exc}")
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {exc}")
@@ -170,25 +187,7 @@ async def upload_document(file: UploadFile = File(...)) -> UploadResponse:
 
 @app.post("/query", response_model=QueryResponse, tags=["RAG"])
 async def query(request: QueryRequest) -> QueryResponse:
-    pipeline = get_pipeline()
 
-    if pipeline.num_chunks == 0:
-        raise HTTPException(
-            status_code=400,
-            detail="No documents indexed yet. Please upload documents first.",
-        )
-
-    try:
-        response = pipeline.query(request.question)
-    except RuntimeError as exc:
-        logger.error(f"Query error: {exc}")
-        raise HTTPException(status_code=503, detail=str(exc))
-
-    return QueryResponse(answer=response.answer)
-
-
-@app.post("/query-debug", tags=["RAG"])
-async def query_debug(request: QueryRequest):
     pipeline = get_pipeline()
 
     if pipeline.num_chunks == 0:
@@ -201,6 +200,33 @@ async def query_debug(request: QueryRequest):
 
     try:
         response = pipeline.query(request.question)
+
+    except RuntimeError as exc:
+        logger.error(f"Query error: {exc}")
+        raise HTTPException(status_code=503, detail=str(exc))
+
+        latency_ms = (time.perf_counter() - start) * 1000
+
+    return QueryResponse(
+        answer=response.answer
+    )
+
+@app.post("/query-debug", tags=["RAG"])
+async def query_debug(request: QueryRequest):
+
+    pipeline = get_pipeline()
+
+    if pipeline.num_chunks == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents indexed yet. Please upload documents first.",
+        )
+
+    start = time.perf_counter()
+
+    try:
+        response = pipeline.query(request.question)
+
     except RuntimeError as exc:
         logger.error(f"Query error: {exc}")
         raise HTTPException(status_code=503, detail=str(exc))
@@ -223,9 +249,12 @@ async def query_debug(request: QueryRequest):
         "latency_ms": round(latency_ms, 1),
     }
 
-
 @app.post("/feedback", response_model=FeedbackResponse, tags=["Feedback"])
 async def feedback(request: FeedbackRequest) -> FeedbackResponse:
+    """
+    Store user feedback.
+    """
+
     try:
         fid = store_feedback(
             query=request.query,
@@ -233,6 +262,7 @@ async def feedback(request: FeedbackRequest) -> FeedbackResponse:
             rating=request.rating,
             comment=request.comment,
         )
+
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -244,17 +274,10 @@ async def feedback(request: FeedbackRequest) -> FeedbackResponse:
 
 @app.delete("/reset", tags=["System"])
 async def reset_index() -> dict:
+    """Clear the entire vector store."""
+
     get_pipeline().reset()
 
     return {
         "message": "Vector store cleared."
     }
-
-
-# ── Entry point ────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("api.main:app", host="0.0.0.0", port=port)
