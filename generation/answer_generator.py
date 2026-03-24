@@ -1,14 +1,21 @@
 """
-Grounded answer generation module.
+Grounded Answer Generation Module — Production Grade.
 
-Constructs context-grounded prompts and calls the LLM.
-Includes hallucination protection and evidence verification.
+Key features:
+- Strict context-only grounding (ZERO external knowledge by default)
+- Mandatory structured response format:
+    Answer from Documents:
+    Additional AI Knowledge (optional, labeled):
+    Sources:
+- Multi-document reasoning: per-paper answers + comparison
+- Hallucination detection via token overlap
+- Fallback: "Not found in uploaded papers"
 """
 
 from __future__ import annotations
 
-from typing import List
 import re
+from typing import List, Dict, Optional
 
 from generation.llm_client import generate
 from monitoring.logger import get_logger
@@ -17,152 +24,251 @@ from retrieval.context_retriever import RetrievedContext
 logger = get_logger(__name__)
 
 
-# ──────────────────────────────────────────────────────────────
-# Prompt Template
-# ──────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────
+# Prompt Templates
+# ──────────────────────────────────────────────────────────────────────────
 
-PROMPT = """
-You are an AI assistant answering questions about documents.
+SINGLE_DOC_PROMPT = """You are a strict research paper Q&A assistant.
 
-Use ONLY the provided context.
+RULES (MANDATORY):
+1. ONLY use information from the provided context.
+2. Do NOT use any external knowledge or training data.
+3. If the answer is not in the context, respond EXACTLY with:
+   "I cannot find the answer in the uploaded papers."
+4. Structure your answer EXACTLY as shown below.
+5. Write 3-6 complete sentences per section.
 
-Explain clearly in simple language.
-
-Write a COMPLETE answer in 3 to 6 sentences.
-Finish the explanation properly.
-
-If the answer is not in the context, say:
-"I cannot find the answer in the documents."
-
-Context:
+Context from uploaded documents:
 {context}
 
-Question:
-{question}
+Question: {question}
 
-Answer:
+Respond in this EXACT format:
+
+Answer from Documents:
+[Your answer using ONLY the context above. Be specific and cite details.]
+
+Sources:
+{source_list}
 """
 
+MULTI_DOC_PROMPT = """You are a strict research paper comparison assistant.
 
-# ──────────────────────────────────────────────────────────────
-# Context formatter
-# ──────────────────────────────────────────────────────────────
+RULES (MANDATORY):
+1. ONLY use information from the provided context sections.
+2. Do NOT use any external knowledge or training data.
+3. Answer SEPARATELY for each paper, then provide a comparison.
+4. If a paper doesn't address the question, say "Not addressed in [paper name]."
+5. Structure your answer EXACTLY as shown below.
 
-def _build_context_str(contexts: List[RetrievedContext]) -> str:
-    """
-    Format retrieved chunks into numbered context sections.
-    """
+Context by Paper:
+{context_by_paper}
 
+Question: {question}
+
+Respond in this EXACT format:
+
+Answer from Documents:
+
+{per_paper_sections}
+
+Comparison:
+[Summarise similarities and differences between the papers on this topic.]
+
+Sources:
+{source_list}
+"""
+
+FALLBACK_ANSWER = "I cannot find the answer in the uploaded papers."
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Context Builders
+# ──────────────────────────────────────────────────────────────────────────
+
+def _build_single_context(contexts: List[RetrievedContext]) -> str:
     parts = []
-
     for i, ctx in enumerate(contexts, 1):
-        parts.append(
-            f"[{i}] Source: {ctx.document_name}\n{ctx.text}"
-        )
-
+        parts.append(f"[{i}] {ctx.document_name}:\n{ctx.text}")
     return "\n\n".join(parts)
 
 
-# ──────────────────────────────────────────────────────────────
-# Context length protection
-# ──────────────────────────────────────────────────────────────
+def _build_multi_context(doc_groups: Dict[str, List[RetrievedContext]]) -> str:
+    parts = []
+    for doc_name, ctxs in doc_groups.items():
+        combined = " ".join(c.text for c in ctxs)
+        parts.append(f"--- {doc_name} ---\n{combined}")
+    return "\n\n".join(parts)
 
-def _truncate_context(context: str, max_chars: int = 6000) -> str:
-    """
-    Prevent prompt from becoming too large.
-    """
 
+def _build_per_paper_sections(doc_groups: Dict[str, List[RetrievedContext]]) -> str:
+    sections = []
+    for doc_name in doc_groups:
+        sections.append(f"From {doc_name}:\n[Answer based on this paper's context]")
+    return "\n\n".join(sections)
+
+
+def _build_source_list(contexts: List[RetrievedContext]) -> str:
+    lines = []
+    for ctx in contexts:
+        lines.append(f"- {ctx.document_name} (chunk {ctx.chunk.chunk_index})")
+    return "\n".join(lines)
+
+
+def _truncate_context(context: str, max_chars: int = 5500) -> str:
     if len(context) > max_chars:
         logger.warning("Context truncated to prevent oversized prompt.")
-        return context[:max_chars]
-
+        return context[:max_chars] + "\n[...truncated]"
     return context
 
 
-# ──────────────────────────────────────────────────────────────
-# Hallucination detector
-# ──────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────
+# Hallucination Detection
+# ──────────────────────────────────────────────────────────────────────────
 
-def _answer_supported(answer: str, contexts: List[RetrievedContext]) -> bool:
+_STOP_WORDS = {
+    "the", "a", "an", "is", "are", "was", "were", "be", "been",
+    "have", "has", "had", "do", "does", "did", "will", "would",
+    "can", "could", "may", "might", "shall", "should", "of", "in",
+    "on", "at", "to", "for", "with", "by", "from", "this", "that",
+    "it", "its", "and", "or", "but", "not", "as", "if", "so",
+}
+
+
+def _meaningful_words(text: str) -> set:
+    words = set(re.findall(r"\b[a-z]{4,}\b", text.lower()))
+    return words - _STOP_WORDS
+
+
+def _is_grounded(answer: str, contexts: List[RetrievedContext], threshold: float = 0.15) -> bool:
     """
-    Check if answer shares meaningful overlap with context.
-    Prevent hallucinated answers.
+    Check answer has sufficient word overlap with retrieved context.
+    Threshold of 0.15 allows paraphrasing while blocking pure hallucination.
     """
-
-    answer_words = set(re.findall(r"\w+", answer.lower()))
-    context_words = set()
-
-    for ctx in contexts:
-        context_words.update(re.findall(r"\w+", ctx.text.lower()))
-
-    overlap = answer_words.intersection(context_words)
-
-    if len(answer_words) == 0:
+    answer_words = _meaningful_words(answer)
+    if not answer_words:
         return False
 
-    overlap_ratio = len(overlap) / len(answer_words)
+    context_words: set = set()
+    for ctx in contexts:
+        context_words.update(_meaningful_words(ctx.text))
 
-    # Slightly relaxed threshold to allow paraphrasing
-    return overlap_ratio > 0.05
+    overlap_ratio = len(answer_words & context_words) / len(answer_words)
+    logger.debug(f"Groundedness overlap ratio: {overlap_ratio:.3f}")
+
+    return overlap_ratio >= threshold
 
 
-# ──────────────────────────────────────────────────────────────
-# Main answer generation
-# ──────────────────────────────────────────────────────────────
+def _is_fallback_response(answer: str) -> bool:
+    fallback_phrases = [
+        "cannot find",
+        "not found in",
+        "not addressed",
+        "no information",
+        "don't have information",
+    ]
+    lower = answer.lower()
+    return any(p in lower for p in fallback_phrases)
 
-def generate_answer(question: str, contexts: List[RetrievedContext]) -> str:
 
-    if not contexts:
-        return "No relevant information found in the documents."
+# ──────────────────────────────────────────────────────────────────────────
+# Post-processing
+# ──────────────────────────────────────────────────────────────────────────
 
-    # Build context
-    context_str = _build_context_str(contexts)
+def _ensure_structured_format(answer: str, contexts: List[RetrievedContext]) -> str:
+    """
+    If LLM didn't follow the format, inject structured wrapper.
+    """
+    if "Answer from Documents:" in answer:
+        return answer
 
-    # Prevent oversized prompts
-    context_str = _truncate_context(context_str)
-
-    # Build final prompt
-    prompt = PROMPT.format(
-        context=context_str,
-        question=question
+    source_list = _build_source_list(contexts)
+    return (
+        f"Answer from Documents:\n{answer.strip()}\n\n"
+        f"Sources:\n{source_list}"
     )
 
-    # DEBUG: show prompt
-    print("\n===== PROMPT SENT TO MODEL =====\n")
-    print(prompt[:1500])
-    print("\n================================\n")
+
+def _clean_answer(answer: str) -> str:
+    """Remove common LLM artifacts."""
+    # Remove "Answer:" prefix if present
+    answer = re.sub(r"^(Answer:|Response:)\s*", "", answer, flags=re.IGNORECASE)
+    # Ensure proper ending
+    if answer.strip() and not answer.strip()[-1] in ".!?":
+        answer = answer.strip() + "."
+    return answer.strip()
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Main Generator
+# ──────────────────────────────────────────────────────────────────────────
+
+def generate_answer(
+    question: str,
+    contexts: List[RetrievedContext],
+    doc_groups: Optional[Dict[str, List[RetrievedContext]]] = None,
+    multi_doc: bool = False,
+) -> str:
+
+    if not contexts:
+        return (
+            f"Answer from Documents:\n{FALLBACK_ANSWER}\n\n"
+            "Sources:\nNo documents indexed."
+        )
+
+    source_list = _build_source_list(contexts)
 
     try:
+        if multi_doc and doc_groups and len(doc_groups) > 1:
+            # ── Multi-document prompt ──
+            context_by_paper = _build_multi_context(doc_groups)
+            context_by_paper = _truncate_context(context_by_paper)
+            per_paper_sections = _build_per_paper_sections(doc_groups)
 
-        answer = generate(prompt)
+            prompt = MULTI_DOC_PROMPT.format(
+                context_by_paper=context_by_paper,
+                question=question,
+                per_paper_sections=per_paper_sections,
+                source_list=source_list,
+            )
+        else:
+            # ── Single-document prompt ──
+            context_str = _build_single_context(contexts)
+            context_str = _truncate_context(context_str)
 
-        if not answer:
+            prompt = SINGLE_DOC_PROMPT.format(
+                context=context_str,
+                question=question,
+                source_list=source_list,
+            )
+
+        logger.debug(f"Prompt length: {len(prompt)} chars")
+
+        raw_answer = generate(prompt)
+
+        if not raw_answer or not raw_answer.strip():
             raise ValueError("Empty LLM response")
 
-        answer = answer.strip()
+        answer = _clean_answer(raw_answer)
 
-        # Ensure sentence completion
-        if not answer.endswith((".", "!", "?")):
-            answer += "."
+        # Groundedness check
+        if not _is_fallback_response(answer) and not _is_grounded(answer, contexts):
+            logger.warning("Hallucination risk detected — returning fallback.")
+            return (
+                f"Answer from Documents:\n{FALLBACK_ANSWER}\n\n"
+                f"Sources:\n{source_list}"
+            )
 
-        # Detect hallucinations
-        if not _answer_supported(answer, contexts):
-            logger.warning("Possible hallucination detected.")
-            return "I cannot find the answer in the documents."
-
-        # Protect against extremely short answers
-        if len(answer.split()) < 8:
-            logger.warning("Answer too short, using fallback.")
-            best_context = contexts[0].text.strip()
-            return best_context.split(".")[0] + "."
+        # Enforce structure
+        answer = _ensure_structured_format(answer, contexts)
 
         return answer
 
-    except Exception as e:
-
-        logger.error(f"LLM generation failed: {e}")
-
-        # Fallback answer from best chunk
-        best_context = contexts[0].text.strip()
-
-        return best_context.split(".")[0] + "."
+    except Exception as exc:
+        logger.error(f"Answer generation failed: {exc}")
+        # Fallback: return best chunk text
+        best = contexts[0].text.strip().split(".")[0] + "."
+        return (
+            f"Answer from Documents:\n{best}\n\n"
+            f"Sources:\n{source_list}"
+        )
