@@ -6,9 +6,58 @@ HTTP client for the FastAPI RAG backend.
 import requests
 from requests.exceptions import ConnectionError, Timeout, RequestException
 
-API_BASE = "http://localhost:8000"
+API_BASE = "http://localhost:8005"
 
 
+# ─────────────────────────────────────────────────────────────
+# 🔥 RESET VECTOR DATABASE
+# ─────────────────────────────────────────────────────────────
+def reset_index() -> dict:
+    """
+    Clear the vector database via /reset endpoint.
+
+    Returns:
+        dict with:
+          - success (bool)
+          - message (str)
+    """
+    try:
+        response = requests.delete(
+            f"{API_BASE}/reset",
+            timeout=30,
+        )
+
+        if response.status_code == 200:
+            return {
+                "success": True,
+                "message": "Vector database cleared successfully."
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Reset failed ({response.status_code}): {response.text[:120]}"
+            }
+
+    except ConnectionError:
+        return {
+            "success": False,
+            "message": "Cannot connect to backend (localhost:8005). Is server running?"
+        }
+    except Timeout:
+        return {
+            "success": False,
+            "message": "Reset request timed out."
+        }
+    except RequestException as e:
+        return {
+            "success": False,
+            "message": f"Reset error: {str(e)}"
+        }
+
+
+# ─────────────────────────────────────────────────────────────
+# 📄 UPLOAD FILE
+# ─────────────────────────────────────────────────────────────
 def upload_file(file) -> dict:
     """
     Upload a PDF or TXT file to the /upload endpoint.
@@ -17,10 +66,10 @@ def upload_file(file) -> dict:
         file: Streamlit UploadedFile object.
 
     Returns:
-        dict with keys:
+        dict with:
           - success (bool)
           - message (str)
-          - data (dict | None)  raw JSON from backend on success
+          - data (dict | None)
     """
     try:
         response = requests.post(
@@ -28,36 +77,60 @@ def upload_file(file) -> dict:
             files={"file": (file.name, file.getvalue(), file.type)},
             timeout=60,
         )
+
         if response.status_code == 200:
-            return {"success": True, "message": f"{file.name} indexed successfully.", "data": response.json()}
+            return {
+                "success": True,
+                "message": f"{file.name} indexed successfully.",
+                "data": response.json(),
+            }
         else:
             return {
                 "success": False,
-                "message": f"Backend returned {response.status_code}: {response.text[:120]}",
+                "message": f"Upload failed ({response.status_code}): {response.text[:120]}",
                 "data": None,
             }
+
     except ConnectionError:
-        return {"success": False, "message": "Cannot connect to backend (localhost:8000). Is the server running?", "data": None}
+        return {
+            "success": False,
+            "message": "Cannot connect to backend (localhost:8005). Is server running?",
+            "data": None,
+        }
     except Timeout:
-        return {"success": False, "message": "Upload timed out. Try a smaller file or check backend.", "data": None}
+        return {
+            "success": False,
+            "message": "Upload timed out. Try a smaller file.",
+            "data": None,
+        }
     except RequestException as e:
-        return {"success": False, "message": f"Upload error: {str(e)}", "data": None}
+        return {
+            "success": False,
+            "message": f"Upload error: {str(e)}",
+            "data": None,
+        }
 
 
+# ─────────────────────────────────────────────────────────────
+# ❓ QUERY
+# ─────────────────────────────────────────────────────────────
 def query(question: str) -> dict:
     """
     Send a question to the /query endpoint.
 
     Args:
-        question: User's natural-language question string.
+        question: User question string.
 
     Returns:
-        dict with keys:
+        dict with:
           - success (bool)
-          - answer (str)   final answer text, or error message
+          - answer (str)
     """
     if not question or not question.strip():
-        return {"success": False, "answer": "Please enter a question."}
+        return {
+            "success": False,
+            "answer": "Please enter a valid question."
+        }
 
     try:
         response = requests.post(
@@ -65,9 +138,11 @@ def query(question: str) -> dict:
             json={"question": question.strip()},
             timeout=60,
         )
+
         if response.status_code == 200:
             data = response.json()
-            # Support common response shapes
+
+            # Flexible response handling
             answer = (
                 data.get("answer")
                 or data.get("response")
@@ -75,17 +150,33 @@ def query(question: str) -> dict:
                 or data.get("output")
                 or str(data)
             )
+
             if not answer or not str(answer).strip():
-                answer = "No answer returned. Please check your documents and try again."
-            return {"success": True, "answer": str(answer)}
+                answer = "No answer returned. Please check your documents."
+
+            return {
+                "success": True,
+                "answer": str(answer)
+            }
+
         else:
             return {
                 "success": False,
-                "answer": f"Backend error {response.status_code}: {response.text[:200]}",
+                "answer": f"Backend error {response.status_code}: {response.text[:200]}"
             }
+
     except ConnectionError:
-        return {"success": False, "answer": "Cannot connect to backend (localhost:8000). Is the server running?"}
+        return {
+            "success": False,
+            "answer": "Cannot connect to backend (localhost:8005). Is server running?"
+        }
     except Timeout:
-        return {"success": False, "answer": "Request timed out. The backend may be overloaded."}
+        return {
+            "success": False,
+            "answer": "Request timed out. Backend may be overloaded."
+        }
     except RequestException as e:
-        return {"success": False, "answer": f"Network error: {str(e)}"}
+        return {
+            "success": False,
+            "answer": f"Network error: {str(e)}"
+        }
