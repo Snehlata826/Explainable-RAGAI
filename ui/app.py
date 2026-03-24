@@ -25,12 +25,8 @@ API_BASE = "http://localhost:8005"
 # THEME & CSS
 # ══════════════════════════════════════════════════════════════
 
-def inject_css():
-    st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
-:root {
+def inject_css(dark_mode: bool = True):
+    colors = """
   --bg:          #040404;
   --bg2:         #080808;
   --bg3:         #0d0d0d;
@@ -54,12 +50,48 @@ def inject_css():
   --shadow:      0 4px 32px rgba(0,255,136,0.05);
   --glow:        0 0 24px rgba(0,255,136,0.2);
   --glow-sm:     0 0 12px rgba(0,255,136,0.12);
-}
+""" if dark_mode else """
+  --bg:          #ffffff;
+  --bg2:         #f8f9fa;
+  --bg3:         #f1f3f5;
+  --card:        #ffffff;
+  --border:      #dce2e8;
+  --border2:     #cbd5e1;
+  --accent:      #00a859;
+  --accent2:     #008f4c;
+  --accent3:     #00ff8840;
+  --text:        #1e293b;
+  --text-muted:  #64748b;
+  --user-bg:     #e0fdf2;
+  --user-border: #a7f3d0;
+  --ai-bg:       #ffffff;
+  --ai-border:   #e2e8f0;
+  --error-bg:    #fff1f2;
+  --error-border:#fecdd3;
+  --error-text:  #e11d48;
+  --warn-bg:     #fffbeb;
+  --warn-text:   #d97706;
+  --shadow:      0 4px 20px rgba(0,0,0,0.08);
+  --glow:        0 0 20px rgba(0,168,89,0.15);
+  --glow-sm:     0 0 10px rgba(0,168,89,0.08);
+"""
+
+    st.markdown(f"<style>:root {{\n{colors}\n}}</style>", unsafe_allow_html=True)
+
+    st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 html, body, [data-testid="stApp"] {
   background: var(--bg) !important;
   color: var(--text) !important;
   font-family: 'Space Grotesk', sans-serif !important;
+}
+[data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p, [data-testid="stText"] {
+  color: var(--text) !important;
+}
+[data-testid="stBottomBlockContainer"], [data-testid="stBottom"], .stChatFloatingInputContainer {
+  background: var(--bg) !important;
 }
 
 /* ── Scrollbar ── */
@@ -98,6 +130,21 @@ html, body, [data-testid="stApp"] {
 [data-testid="stFileUploader"]:hover {
   border-color: var(--accent)60 !important;
 }
+[data-testid="stFileUploadDropzone"], [data-testid="stFileUploaderDropzone"] {
+  background-color: transparent !important;
+}
+[data-testid="stFileUploadDropzone"] *, [data-testid="stFileUploaderDropzone"] * {
+  color: var(--text) !important;
+}
+[data-testid="stFileUploadDropzone"] button, [data-testid="stFileUploaderDropzone"] button {
+  background-color: var(--bg) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--accent) !important;
+}
+[data-testid="stSidebarCollapseButton"] svg, [data-testid="collapsedControl"] svg {
+  fill: var(--text) !important;
+  color: var(--text) !important;
+}
 
 /* ── Buttons ── */
 .stButton > button {
@@ -105,14 +152,14 @@ html, body, [data-testid="stApp"] {
   color: var(--accent) !important;
   border: 1px solid var(--accent)35 !important;
   border-radius: 8px !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 0.72rem !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 0.65rem !important;
   font-weight: 500 !important;
-  letter-spacing: 0.12em !important;
+  letter-spacing: normal !important;
   padding: 0.4rem 1rem !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   width: 100% !important;
-  text-transform: uppercase !important;
+  text-transform: none !important;
 }
 .stButton > button:hover {
   background: var(--accent)10 !important;
@@ -155,8 +202,28 @@ html, body, [data-testid="stApp"] {
 }
 
 /* ── Toggle ── */
-[data-testid="stToggle"] span {
-  background-color: var(--accent)40 !important;
+[data-testid="stToggle"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  padding: 0.4rem 0.8rem !important;
+}
+[data-testid="stToggle"] [data-testid="stWidgetLabel"] p {
+  color: var(--text) !important;
+}
+/* Ensure the toggle shape is visible across Streamlit versions */
+[data-testid="stToggle"] div[data-baseweb="checkbox"] > div {
+  background-color: var(--border) !important;
+}
+[data-testid="stToggle"] div[data-baseweb="checkbox"] input:checked + div,
+[data-testid="stToggle"] input[type="checkbox"]:checked + div,
+[data-testid="stToggle"] input:checked ~ div {
+  background-color: var(--accent) !important;
+}
+[data-testid="stToggle"] div[data-baseweb="checkbox"] > div > div,
+[data-testid="stToggle"] input[type="checkbox"] + div > div {
+  background-color: var(--bg) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
 hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
@@ -266,7 +333,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   padding: 0.85rem 1.1rem 0.85rem 1.4rem;
   margin: 0.35rem 3.5rem 0.35rem 0;
   font-size: 0.9rem;
-  line-height: 1.75;
+  line-height: 1.5;
   box-shadow: var(--shadow);
   word-wrap: break-word;
   position: relative;
@@ -533,6 +600,9 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border: 1px solid var(--border2) !important;
   border-radius: 8px !important;
 }
+[data-testid="stFileUploaderFile"] * {
+  color: var(--text) !important;
+}
 [data-testid="stFileUploaderFileName"] {
   color: var(--text) !important;
   font-family: 'JetBrains Mono', monospace !important;
@@ -709,39 +779,13 @@ def render_ai_bubble(
         )
         sources_html = f'<details style="margin-top:.5rem;"><summary style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--text-muted);cursor:pointer;letter-spacing:.1em;">▸ VIEW SOURCES ({len(sources)})</summary>{items}</details>'
 
-    # Feedback buttons (use Streamlit buttons below for interactivity)
-    feedback_html = f"""
-<div class="feedback-row">
-  <span style="font-family:JetBrains Mono,monospace;font-size:.6rem;color:var(--text-muted);align-self:center;letter-spacing:.1em;">Was this helpful?</span>
-</div>
-"""
-
     st.markdown(f"""
 <div class="msg-meta" style="padding:0 2rem;">
   <span class="accent">⚡ RAG</span><span>·</span><span>Assistant</span>
   {badge}
 </div>
-<div class="ai-bubble">{answer}{eval_html}{sources_html}{feedback_html}</div>
+<div class="ai-bubble">{answer}{eval_html}{sources_html}</div>
 """, unsafe_allow_html=True)
-
-    # Feedback buttons via Streamlit (for state management)
-    col1, col2, col3 = st.columns([0.08, 0.08, 0.84])
-    with col1:
-        if st.button("👍", key=f"up_{msg_id}", help="Helpful"):
-            res = api_feedback(
-                st.session_state.messages[-2]["content"] if len(st.session_state.messages) >= 2 else "",
-                answer, True
-            )
-            if res["success"]:
-                st.toast("Thanks for the feedback!", icon="✅")
-    with col2:
-        if st.button("👎", key=f"dn_{msg_id}", help="Not helpful"):
-            res = api_feedback(
-                st.session_state.messages[-2]["content"] if len(st.session_state.messages) >= 2 else "",
-                answer, False
-            )
-            if res["success"]:
-                st.toast("Feedback noted.", icon="📝")
 
 
 def render_error_bubble(message: str):
@@ -754,17 +798,17 @@ def render_error_bubble(message: str):
 
 
 def typing_effect(placeholder, text: str):
-    st.markdown("""
+    meta = """
 <div class="msg-meta" style="padding:0 2rem;">
   <span class="accent">⚡ RAG</span><span>·</span><span>Assistant</span>
 </div>
-""", unsafe_allow_html=True)
+"""
     chunk = 4
     for i in range(0, len(text) + chunk, chunk):
         shown = text[:i]
         cursor = '<span class="typing-cursor"></span>' if i <= len(text) else ""
         placeholder.markdown(
-            f'<div class="ai-bubble">{shown}{cursor}</div>',
+            f'{meta}<div class="ai-bubble">{shown}{cursor}</div>',
             unsafe_allow_html=True,
         )
         time.sleep(0.01)
@@ -780,23 +824,23 @@ def render_sidebar():
         # Logo
         st.markdown("""
 <div style="display:flex;align-items:center;gap:10px;
-            padding-bottom:1rem;border-bottom:1px solid #141414;margin-bottom:.5rem;">
-  <div style="width:34px;height:34px;background:#00ff88;border-radius:9px;
+            padding-bottom:1rem;border-bottom:1px solid var(--border);margin-bottom:.5rem;">
+  <div style="width:34px;height:34px;background:var(--accent);border-radius:9px;
               display:flex;align-items:center;justify-content:center;
-              font-size:16px;flex-shrink:0;box-shadow:0 0 16px #00ff8840;">⚡</div>
+              font-size:16px;flex-shrink:0;box-shadow:0 0 16px var(--accent3);">⚡</div>
   <div>
     <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;
-                font-size:.95rem;color:#e2e8e4;">RAG Intelligence</div>
+                font-size:.95rem;color:var(--text);">RAG Intelligence</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;
-                color:#00ff88;letter-spacing:.1em;">v2.0 · EXPLAINABLE</div>
+                color:var(--accent);letter-spacing:.1em;">v2.0 · EXPLAINABLE</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-        # Debug mode toggle
+        # Theme mode toggle
         st.markdown('<div class="sidebar-label">⚙ Settings</div>', unsafe_allow_html=True)
-        st.session_state.debug_mode = st.toggle(
-            "Debug Mode (show metrics)", value=st.session_state.get("debug_mode", False)
+        st.session_state.dark_mode = st.toggle(
+            "Dark Mode", value=st.session_state.get("dark_mode", True)
         )
 
         st.markdown("---")
@@ -835,11 +879,12 @@ def render_sidebar():
 
         # File tags
         if st.session_state.uploaded_files:
-            st.markdown('<div style="margin-top:.5rem">', unsafe_allow_html=True)
+            html = ['<div style="margin-top:.5rem">']
             for fname in st.session_state.uploaded_files:
                 icon = "📄" if fname.lower().endswith(".txt") else "📕"
-                st.markdown(f'<div class="file-tag">{icon} {fname}</div>', unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                html.append(f'<div class="file-tag">{icon} {fname}</div>')
+            html.append('</div>')
+            st.markdown("".join(html), unsafe_allow_html=True)
 
         st.markdown("---")
 
@@ -848,23 +893,16 @@ def render_sidebar():
         if st.button("Clear Chat History", key="clear_btn"):
             st.session_state.messages = []
             st.rerun()
-        if st.button("Reset Index", key="reset_btn"):
-            with st.spinner("Resetting…"):
-                api_reset()
-                st.session_state.uploaded_files = []
-                st.session_state.db_reset_done = False
-            st.success("Index cleared")
-            st.rerun()
 
         # Stats footer
         doc_count = len(st.session_state.uploaded_files)
         st.markdown(f"""
 <div style="margin-top:1.8rem;font-family:'JetBrains Mono',monospace;
-            font-size:.62rem;color:#404844;line-height:2.0;">
-  Backend → <span style="color:#00ff88;">localhost:8005</span><br>
-  Retrieval → <span style="color:#00ff88;">FAISS + BM25</span><br>
-  Reranker → <span style="color:#00ff88;">cross-encoder</span><br>
-  Docs → <span style="color:#00ff88;">{doc_count} indexed</span>
+            font-size:.62rem;color:var(--text-muted);line-height:2.0;">
+  Backend → <span style="color:var(--accent);">localhost:8005</span><br>
+  Retrieval → <span style="color:var(--accent);">FAISS + BM25</span><br>
+  Reranker → <span style="color:var(--accent);">cross-encoder</span><br>
+  Docs → <span style="color:var(--accent);">{doc_count} indexed</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -874,18 +912,21 @@ def render_sidebar():
 # ══════════════════════════════════════════════════════════════
 
 def handle_user_input(prompt: str):
-    render_user_bubble(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
     # Background fetch
     result_holder = {"data": None, "done": False}
+    debug_mode = st.session_state.get("debug_mode", False)
 
     def fetch():
-        data = api_query(prompt, debug=st.session_state.get("debug_mode", False))
+        data = api_query(prompt, debug=debug_mode)
         result_holder["data"] = data
         result_holder["done"] = True
 
     thread = threading.Thread(target=fetch, daemon=True)
+    try:
+        from streamlit.runtime.scriptrunner import add_script_run_ctx
+        add_script_run_ctx(thread)
+    except:
+        pass
     thread.start()
 
     # Animated loader
@@ -978,6 +1019,7 @@ def _init_session():
         "uploaded_files": [],
         "debug_mode": False,
         "db_reset_done": False,
+        "dark_mode": True,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -986,8 +1028,8 @@ def _init_session():
 
 def main():
     _init_session()
-    inject_css()
     render_sidebar()
+    inject_css(st.session_state.get("dark_mode", True))
 
     # Chat header
     st.markdown("""
@@ -1017,7 +1059,12 @@ def main():
         render_history()
 
     if prompt := st.chat_input("Ask about your research papers…"):
-        handle_user_input(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.rerun()
+
+    # Automatically generate an answer if the last message was from the user
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        handle_user_input(st.session_state.messages[-1]["content"])
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ RULES (MANDATORY):
 3. If the answer is not in the context, respond EXACTLY with:
    "I cannot find the answer in the uploaded papers."
 4. Structure your answer EXACTLY as shown below.
-5. Write 3-6 complete sentences per section.
+5. Use concise bullet points or short paragraphs to make the answer highly readable.
 
 Context from uploaded documents:
 {context}
@@ -47,9 +47,6 @@ Respond in this EXACT format:
 
 Answer from Documents:
 [Your answer using ONLY the context above. Be specific and cite details.]
-
-Sources:
-{source_list}
 """
 
 MULTI_DOC_PROMPT = """You are a strict research paper comparison assistant.
@@ -60,6 +57,7 @@ RULES (MANDATORY):
 3. Answer SEPARATELY for each paper, then provide a comparison.
 4. If a paper doesn't address the question, say "Not addressed in [paper name]."
 5. Structure your answer EXACTLY as shown below.
+6. Use concise bullet points or short paragraphs to make the answer highly readable.
 
 Context by Paper:
 {context_by_paper}
@@ -74,9 +72,6 @@ Answer from Documents:
 
 Comparison:
 [Summarise similarities and differences between the papers on this topic.]
-
-Sources:
-{source_list}
 """
 
 FALLBACK_ANSWER = "I cannot find the answer in the uploaded papers."
@@ -180,13 +175,11 @@ def _ensure_structured_format(answer: str, contexts: List[RetrievedContext]) -> 
     If LLM didn't follow the format, inject structured wrapper.
     """
     if "Answer from Documents:" in answer:
+        if "\nSources:" in answer:
+            answer = answer.split("\nSources:")[0].strip()
         return answer
 
-    source_list = _build_source_list(contexts)
-    return (
-        f"Answer from Documents:\n{answer.strip()}\n\n"
-        f"Sources:\n{source_list}"
-    )
+    return f"Answer from Documents:\n{answer.strip()}"
 
 
 def _clean_answer(answer: str) -> str:
@@ -196,6 +189,8 @@ def _clean_answer(answer: str) -> str:
     # Ensure proper ending
     if answer.strip() and not answer.strip()[-1] in ".!?":
         answer = answer.strip() + "."
+    # Squeeze consecutive newlines completely to avoid any massive layout gaps
+    answer = re.sub(r'\n{2,}', '\n', answer)
     return answer.strip()
 
 
@@ -211,10 +206,7 @@ def generate_answer(
 ) -> str:
 
     if not contexts:
-        return (
-            f"Answer from Documents:\n{FALLBACK_ANSWER}\n\n"
-            "Sources:\nNo documents indexed."
-        )
+        return f"Answer from Documents:\n{FALLBACK_ANSWER}"
 
     source_list = _build_source_list(contexts)
 
@@ -229,7 +221,6 @@ def generate_answer(
                 context_by_paper=context_by_paper,
                 question=question,
                 per_paper_sections=per_paper_sections,
-                source_list=source_list,
             )
         else:
             # ── Single-document prompt ──
@@ -239,7 +230,6 @@ def generate_answer(
             prompt = SINGLE_DOC_PROMPT.format(
                 context=context_str,
                 question=question,
-                source_list=source_list,
             )
 
         logger.debug(f"Prompt length: {len(prompt)} chars")
@@ -254,10 +244,7 @@ def generate_answer(
         # Groundedness check
         if not _is_fallback_response(answer) and not _is_grounded(answer, contexts):
             logger.warning("Hallucination risk detected — returning fallback.")
-            return (
-                f"Answer from Documents:\n{FALLBACK_ANSWER}\n\n"
-                f"Sources:\n{source_list}"
-            )
+            return f"Answer from Documents:\n{FALLBACK_ANSWER}"
 
         # Enforce structure
         answer = _ensure_structured_format(answer, contexts)
@@ -266,9 +253,5 @@ def generate_answer(
 
     except Exception as exc:
         logger.error(f"Answer generation failed: {exc}")
-        # Fallback: return best chunk text
         best = contexts[0].text.strip().split(".")[0] + "."
-        return (
-            f"Answer from Documents:\n{best}\n\n"
-            f"Sources:\n{source_list}"
-        )
+        return f"Answer from Documents:\n{best}"
