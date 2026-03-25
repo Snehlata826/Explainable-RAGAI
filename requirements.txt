@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi
 uvicorn
 pydantic
@@ -10,9 +12,7 @@ numpy
 scikit-learn
 rank-bm25
 
-torch==2.2.2+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
-
+torch
 python-dotenv
 requests
 pypdf
