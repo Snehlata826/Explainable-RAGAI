@@ -15,10 +15,11 @@ st.set_page_config(
 
 import time
 import threading
+import os
 import requests
 from requests.exceptions import ConnectionError, Timeout
 
-API_BASE = "http://localhost:8005"
+API_BASE = os.environ.get("API_BASE", "http://localhost:8005")
 
 
 # ══════════════════════════════════════════════════════════════

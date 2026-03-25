@@ -30,11 +30,11 @@ EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", "384"))
 
 # ── Chunking ───────────────────────────────────────────────────────────────
 # Research-paper-optimized: larger chunks preserve paragraph context
-CHUNK_SIZE: int    = int(os.getenv("CHUNK_SIZE", "500"))
-CHUNK_OVERLAP: int = int(os.getenv("CHUNK_OVERLAP", "150"))
+CHUNK_SIZE: int    = int(os.getenv("CHUNK_SIZE", "350"))
+CHUNK_OVERLAP: int = int(os.getenv("CHUNK_OVERLAP", "100"))
 
 # ── Retrieval ──────────────────────────────────────────────────────────────
-TOP_K_RETRIEVAL: int     = int(os.getenv("TOP_K_RETRIEVAL", "10"))
+TOP_K_RETRIEVAL: int     = int(os.getenv("TOP_K_RETRIEVAL", "15"))
 TOP_K_RERANK: int        = int(os.getenv("TOP_K_RERANK", "3"))
 SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.25"))
 
