@@ -94,6 +94,12 @@ class FeedbackRequest(BaseModel):
 
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/docs")
+
 @app.get("/health", tags=["System"])
 async def health_check() -> dict:
     if _pipeline is None:
