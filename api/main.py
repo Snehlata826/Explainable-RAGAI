@@ -50,32 +50,40 @@ _pipeline: RAGPipeline | None = None
 _evaluator: RAGEvaluator | None = None
 
 
+import asyncio
+
+async def load_models_bg():
+    global _pipeline, _evaluator
+    logger.info("Initializing RAG pipeline in the background...")
+    try:
+        loop = asyncio.get_running_loop()
+        _pipeline_temp = await loop.run_in_executor(None, RAGPipeline)
+        _evaluator_temp = await loop.run_in_executor(None, lambda: RAGEvaluator(log_dir=EVAL_DIR))
+        
+        _pipeline = _pipeline_temp
+        _evaluator = _evaluator_temp
+        logger.info(f"Pipeline ready. Indexed chunks: {_pipeline.num_chunks}")
+    except Exception as e:
+        logger.error(f"Error initializing pipeline: {e}")
+
 @app.on_event("startup")
 async def startup_event() -> None:
-    global _pipeline, _evaluator
-    logger.info("Initialising RAG pipeline…")
-    _pipeline = RAGPipeline()
-    _evaluator = RAGEvaluator(log_dir=EVAL_DIR)
-    logger.info(f"Pipeline ready. Indexed chunks: {_pipeline.num_chunks}")
-
+    asyncio.create_task(load_models_bg())
 
 def get_pipeline() -> RAGPipeline:
     if _pipeline is None:
-        raise RuntimeError("Pipeline not initialised.")
+        raise RuntimeError("Pipeline is still initializing. Please wait a moment.")
     return _pipeline
-
 
 def get_evaluator() -> RAGEvaluator:
     if _evaluator is None:
-        raise RuntimeError("Evaluator not initialised.")
+        raise RuntimeError("Evaluator is still initializing. Please wait a moment.")
     return _evaluator
-
 
 # ── Schemas ────────────────────────────────────────────────────────────────
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3)
-
 
 class FeedbackRequest(BaseModel):
     query: str
@@ -84,18 +92,23 @@ class FeedbackRequest(BaseModel):
     comment: Optional[str] = None
     thumbs_up: Optional[bool] = None
 
-
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["System"])
 async def health_check() -> dict:
-    pipeline = get_pipeline()
+    if _pipeline is None:
+        return {
+            "status": "loading",
+            "message": "Models are loading in the background. The API will be fully ready shortly."
+        }
+    
+    pipeline = _pipeline
     try:
         hf_ok = is_hf_available()
     except Exception:
         hf_ok = False
     return {
-        "status": "ok",
+        "status": "ready",
         "hf_available": hf_ok,
         "indexed_chunks": pipeline.num_chunks,
         "documents": pipeline.get_document_list(),
