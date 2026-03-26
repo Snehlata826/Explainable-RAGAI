@@ -1,3 +1,14 @@
+---
+title: Explainable RAG AI
+emoji: 🧠
+colorFrom: blue
+colorTo: purple
+sdk: streamlit
+sdk_version: "1.36.0"
+app_file: ui/app.py
+pinned: false
+---
+
 # GenAI RAG Copilot
 
 GenAI RAG Copilot is a Retrieval-Augmented Generation (RAG) system for answering questions from documents using hybrid retrieval, reranking, and grounded LLM responses.
