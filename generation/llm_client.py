@@ -90,9 +90,12 @@ def is_hf_available() -> bool:
     """
 
     try:
-        client.text_generation(
-            "Hello",
-            max_new_tokens=5
+        # Use chat_completion instead of text_generation
+        messages = [{"role": "user", "content": "Hello"}]
+        client.chat_completion(
+            model=HF_MODEL,
+            messages=messages,
+            max_tokens=5
         )
         return True
 
