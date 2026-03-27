@@ -3,9 +3,7 @@ title: Explainable RAG AI
 emoji: 🧠
 colorFrom: blue
 colorTo: purple
-sdk: streamlit
-sdk_version: "1.35.0"
-app_file: ui/app.py
+sdk: docker
 pinned: false
 ---
 
