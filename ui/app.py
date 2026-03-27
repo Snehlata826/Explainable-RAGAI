@@ -639,7 +639,7 @@ def api_upload(file) -> dict:
         r = requests.post(
             f"{API_BASE}/upload",
             files={"file": (file.name, file.getvalue(), file.type)},
-            timeout=60,
+            timeout=600,
         )
         if r.status_code == 200:
             return {"success": True, "data": r.json()}
@@ -654,7 +654,7 @@ def api_query(question: str, debug: bool = False) -> dict:
         r = requests.post(
             f"{API_BASE}{endpoint}",
             json={"question": question},
-            timeout=90,
+            timeout=300,
         )
         if r.status_code == 200:
             return {"success": True, **r.json()}

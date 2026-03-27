@@ -76,7 +76,7 @@ def upload_file(file) -> dict:
         response = requests.post(
             f"{API_BASE}/upload",
             files={"file": (file.name, file.getvalue(), file.type)},
-            timeout=60,
+            timeout=600,
         )
 
         if response.status_code == 200:
@@ -137,7 +137,7 @@ def query(question: str) -> dict:
         response = requests.post(
             f"{API_BASE}/query",
             json={"question": question.strip()},
-            timeout=60,
+            timeout=300,
         )
 
         if response.status_code == 200:
