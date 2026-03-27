@@ -12,29 +12,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Install Python dependencies
+# Install Python dependencies (both backend and UI)
 COPY requirements.txt .
+COPY requirements-ui.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-ui.txt
 
 # Copy project source
 COPY . .
 
-# Create required directories
-RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs
+# Ensure start script is executable
+RUN chmod +x start.sh
+
+# Create required directories and give permissions for Hugging Face (which runs as non-root)
+RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs && \
+    chmod -R 777 /app/data /app/logs
 
 # ── Environment ─────────────────────────────────────────────────────────────
 ENV PYTHONPATH=/app
-ENV OLLAMA_BASE_URL=http://host.docker.internal:11434
-ENV OLLAMA_MODEL=mistral
-ENV API_HOST=0.0.0.0
-ENV API_PORT=8000
+ENV API_BASE=http://localhost:8000
 
-# ── Expose ports ────────────────────────────────────────────────────────────
-# FastAPI
-EXPOSE 8000
-# Streamlit
-EXPOSE 8501
+# ── Expose port required by HuggingFace Spaces ─────────────────────────────
+EXPOSE 7860
 
-# ── Default command: start FastAPI ──────────────────────────────────────────
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# ── Default command: run both servers via bash script ───────────────────────
+CMD ["./start.sh"]
