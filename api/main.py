@@ -57,6 +57,14 @@ async def load_models_bg():
     logger.info("Initializing RAG pipeline in the background...")
     try:
         loop = asyncio.get_running_loop()
+        
+        # Preload models to avoid timeout on first request
+        from embeddings.embedding_generator import _get_model
+        await loop.run_in_executor(None, _get_model)
+        
+        from retrieval.reranker import _get_reranker
+        await loop.run_in_executor(None, _get_reranker)
+
         _pipeline_temp = await loop.run_in_executor(None, RAGPipeline)
         _evaluator_temp = await loop.run_in_executor(None, lambda: RAGEvaluator(log_dir=EVAL_DIR))
         
