@@ -123,7 +123,7 @@ ollama pull mistral
 Start backend
 
 ```
-PYTHONPATH=. uvicorn api.main:app --port 8000 --reload
+PYTHONPATH=. uvicorn api.main:app --port 8005 --reload
 ```
 
 Start frontend

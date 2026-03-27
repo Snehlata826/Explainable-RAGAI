@@ -31,7 +31,7 @@ RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs && \
 
 # ── Environment ─────────────────────────────────────────────────────────────
 ENV PYTHONPATH=/app
-ENV API_BASE=http://localhost:8000
+ENV API_BASE=http://localhost:8005
 
 # ── Expose port required by HuggingFace Spaces ─────────────────────────────
 EXPOSE 7860
