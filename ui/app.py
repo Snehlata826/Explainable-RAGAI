@@ -19,8 +19,14 @@ import os
 import requests
 from requests.exceptions import ConnectionError, Timeout
 
-API_BASE = os.environ.get("API_BASE", "http://localhost:8005")
 
+# Detect environment
+IS_HF = os.getenv("SPACE_ID") is not None
+
+if IS_HF:
+    API_BASE = ""   # Hugging Face (relative path)
+else:
+    API_BASE = "http://localhost:8005"  # local backend
 
 # ══════════════════════════════════════════════════════════════
 # THEME & CSS
@@ -649,7 +655,7 @@ def api_upload(file) -> dict:
 
 
 def api_query(question: str, debug: bool = False) -> dict:
-    endpoint = "/query-debug" if debug else "/query"
+    endpoint = "/query"
     try:
         r = requests.post(
             f"{API_BASE}{endpoint}",
