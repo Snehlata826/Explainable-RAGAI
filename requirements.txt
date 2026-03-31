@@ -12,6 +12,9 @@ numpy
 scikit-learn
 rank-bm25
 
+streamlit==1.36.0
+requests
+
 torch
 python-dotenv
 requests
