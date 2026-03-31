@@ -1,40 +1,33 @@
-# ── Build stage ────────────────────────────────────────────────────────────
-FROM python:3.11-slim AS base
+FROM python:3.11-slim
 
-LABEL maintainer="GenAI RAG Copilot"
-LABEL description="Explainable RAG system for document Q&A"
-
-# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential curl && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python dependencies (both backend and UI)
 COPY requirements.txt .
-COPY requirements-ui.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir -r requirements-ui.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy project source
+# Download spacy model
+RUN python -m spacy download en_core_web_sm
+
 COPY . .
 
-# Ensure start script is executable
-RUN chmod +x start.sh
+RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs
 
-# Create required directories and give permissions for Hugging Face (which runs as non-root)
-RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs && \
-    chmod -R 777 /app/data /app/logs
-
-# ── Environment ─────────────────────────────────────────────────────────────
 ENV PYTHONPATH=/app
-ENV API_BASE=http://localhost:8005
+ENV API_BASE_URL=http://localhost:8005
 
-# ── Expose port required by HuggingFace Spaces ─────────────────────────────
+# 🔐 Do NOT hardcode secrets
+# Use environment variables instead
+ENV HF_MODEL=mistralai/Mistral-7B-Instruct-v0.2
+
+# HuggingFace requires port 7860
 EXPOSE 7860
 
-# ── Default command: run both servers via bash script ───────────────────────
-CMD ["./start.sh"]
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]

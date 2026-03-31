@@ -28,6 +28,7 @@ if IS_HF:
 else:
     API_BASE = "http://localhost:8005"  # local backend
 
+
 # ══════════════════════════════════════════════════════════════
 # THEME & CSS
 # ══════════════════════════════════════════════════════════════
@@ -87,17 +88,22 @@ def inject_css(dark_mode: bool = True):
 
     st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
+/* ── Base fonts (no external imports — CSP safe) ── */
 html, body, [data-testid="stApp"] {
   background: var(--bg) !important;
   color: var(--text) !important;
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
 }
-[data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p, [data-testid="stText"] {
+
+[data-testid="stWidgetLabel"] p,
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stText"] {
   color: var(--text) !important;
 }
-[data-testid="stBottomBlockContainer"], [data-testid="stBottom"], .stChatFloatingInputContainer {
+
+[data-testid="stBottomBlockContainer"],
+[data-testid="stBottom"],
+.stChatFloatingInputContainer {
   background: var(--bg) !important;
 }
 
@@ -137,18 +143,22 @@ html, body, [data-testid="stApp"] {
 [data-testid="stFileUploader"]:hover {
   border-color: var(--accent)60 !important;
 }
-[data-testid="stFileUploadDropzone"], [data-testid="stFileUploaderDropzone"] {
+[data-testid="stFileUploadDropzone"],
+[data-testid="stFileUploaderDropzone"] {
   background-color: transparent !important;
 }
-[data-testid="stFileUploadDropzone"] *, [data-testid="stFileUploaderDropzone"] * {
+[data-testid="stFileUploadDropzone"] *,
+[data-testid="stFileUploaderDropzone"] * {
   color: var(--text) !important;
 }
-[data-testid="stFileUploadDropzone"] button, [data-testid="stFileUploaderDropzone"] button {
+[data-testid="stFileUploadDropzone"] button,
+[data-testid="stFileUploaderDropzone"] button {
   background-color: var(--bg) !important;
   color: var(--accent) !important;
   border: 1px solid var(--accent) !important;
 }
-[data-testid="stSidebarCollapseButton"] svg, [data-testid="collapsedControl"] svg {
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="collapsedControl"] svg {
   fill: var(--text) !important;
   color: var(--text) !important;
 }
@@ -159,14 +169,12 @@ html, body, [data-testid="stApp"] {
   color: var(--accent) !important;
   border: 1px solid var(--accent)35 !important;
   border-radius: 8px !important;
-  font-family: 'Space Grotesk', sans-serif !important;
-  font-size: 0.65rem !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+  font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: normal !important;
   padding: 0.4rem 1rem !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   width: 100% !important;
-  text-transform: none !important;
 }
 .stButton > button:hover {
   background: var(--accent)10 !important;
@@ -181,7 +189,7 @@ html, body, [data-testid="stApp"] {
   color: var(--text) !important;
   border: 1px solid var(--border2) !important;
   border-radius: 12px !important;
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
   font-size: 0.92rem !important;
 }
 [data-testid="stChatInput"] textarea:focus {
@@ -218,7 +226,6 @@ html, body, [data-testid="stApp"] {
 [data-testid="stToggle"] [data-testid="stWidgetLabel"] p {
   color: var(--text) !important;
 }
-/* Ensure the toggle shape is visible across Streamlit versions */
 [data-testid="stToggle"] div[data-baseweb="checkbox"] > div {
   background-color: var(--border) !important;
 }
@@ -240,7 +247,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
    ══════════════════════════════════════════════════════════════ */
 
 .sidebar-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.65rem;
   color: var(--accent);
   letter-spacing: 0.18em;
@@ -254,7 +261,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border: 1px solid var(--accent)20;
   border-radius: 6px;
   padding: 0.28rem 0.6rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.68rem;
   color: var(--accent);
   margin: 0.2rem 0;
@@ -270,7 +277,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border: 1px solid var(--accent)35;
   border-radius: 8px;
   padding: 0.45rem 0.8rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.7rem;
   color: var(--accent);
   margin-top: 0.4rem;
@@ -287,14 +294,14 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   z-index: 10;
 }
 .chat-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   font-weight: 700;
   font-size: 1.05rem;
   color: var(--text);
   letter-spacing: -0.01em;
 }
 .chat-status {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.65rem;
   color: var(--accent);
   display: flex;
@@ -311,8 +318,8 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   box-shadow: 0 0 6px var(--accent);
 }
 @keyframes pulse-dot {
-  0%,100% { opacity:1; transform:scale(1); box-shadow: 0 0 6px var(--accent); }
-  50%      { opacity:.4; transform:scale(.75); box-shadow: 0 0 2px var(--accent); }
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.4; transform:scale(.75); }
 }
 
 /* ── Message bubbles ── */
@@ -340,7 +347,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   padding: 0.85rem 1.1rem 0.85rem 1.4rem;
   margin: 0.35rem 3.5rem 0.35rem 0;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.6;
   box-shadow: var(--shadow);
   word-wrap: break-word;
   position: relative;
@@ -361,27 +368,8 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   to   { opacity:1; transform:translateX(0); }
 }
 
-/* ── Structured response formatting ── */
-.ai-bubble .section-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-  color: var(--accent);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 0.6rem;
-  margin-bottom: 0.2rem;
-  display: block;
-}
-.ai-bubble .source-item {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  padding: 0.15rem 0;
-}
-.ai-bubble .source-item::before { content: "▸ "; color: var(--accent); }
-
 .msg-meta {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.62rem;
   color: var(--text-muted);
   margin-bottom: 0.18rem;
@@ -396,7 +384,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.6rem;
   padding: 0.15rem 0.45rem;
   border-radius: 20px;
@@ -424,7 +412,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   background: linear-gradient(180deg, var(--accent), var(--accent2));
 }
 .loader-stage {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.78rem;
   color: var(--accent);
   display: flex;
@@ -482,21 +470,20 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   font-size: 2.8rem;
   margin-bottom: 1rem;
   animation: float 3.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 12px rgba(0,255,136,0.3));
 }
 @keyframes float {
   0%,100% { transform:translateY(0); }
   50%      { transform:translateY(-10px); }
 }
 .empty-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   font-weight: 700;
   font-size: 1.3rem;
   color: var(--text);
   margin-bottom: 0.5rem;
 }
 .empty-sub {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.74rem;
   color: var(--text-muted);
   line-height: 1.75;
@@ -510,7 +497,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border-radius: 12px;
   padding: 0.75rem 1.1rem;
   margin: 0.35rem 3.5rem 0.35rem 0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.76rem;
   color: var(--error-text);
   animation: slideInLeft 0.25s ease;
@@ -526,7 +513,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border-top: 1px solid var(--border);
 }
 .eval-pill {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.58rem;
   padding: 0.12rem 0.5rem;
   border-radius: 20px;
@@ -537,30 +524,6 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
 }
 .eval-pill span { color: var(--accent); }
 
-/* ── Feedback buttons ── */
-.feedback-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.55rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
-}
-.fb-btn {
-  cursor: pointer;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-  letter-spacing: 0.06em;
-}
-.fb-btn:hover { border-color: var(--accent)50; color: var(--accent); background: var(--accent)08; }
-.fb-btn.active-up { border-color: var(--accent)60; color: var(--accent); background: var(--accent)10; }
-.fb-btn.active-down { border-color: var(--error-text)60; color: var(--error-text); background: #ff444410; }
-
 /* ── Source card ── */
 .source-card {
   background: var(--bg3);
@@ -568,7 +531,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   border-radius: 8px;
   padding: 0.55rem 0.8rem;
   margin-top: 0.35rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: 0.68rem;
   animation: fadeIn 0.4s ease;
 }
@@ -612,7 +575,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
 }
 [data-testid="stFileUploaderFileName"] {
   color: var(--text) !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Courier New', Consolas, monospace !important;
   font-size: 0.75rem !important;
 }
 [data-testid="stBaseButton-secondary"] {
@@ -620,7 +583,7 @@ hr { border-color: var(--border2) !important; margin: 0.8rem 0 !important; }
   color: var(--text) !important;
   border: 1px solid var(--border2) !important;
   border-radius: 8px !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Courier New', Consolas, monospace !important;
   font-size: 0.72rem !important;
 }
 
@@ -774,7 +737,6 @@ def render_ai_bubble(
     badge = _confidence_badge(confidence_label, confidence) if confidence_label else ""
     eval_html = _eval_strip(eval_data or {})
 
-    # Format sources
     sources_html = ""
     if sources:
         items = "".join(
@@ -784,7 +746,12 @@ def render_ai_bubble(
             f'</div>'
             for s in sources[:3]
         )
-        sources_html = f'<details style="margin-top:.5rem;"><summary style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--text-muted);cursor:pointer;letter-spacing:.1em;">▸ VIEW SOURCES ({len(sources)})</summary>{items}</details>'
+        sources_html = (
+            f'<details style="margin-top:.5rem;">'
+            f'<summary style="font-family:Courier New,monospace;font-size:.65rem;'
+            f'color:var(--text-muted);cursor:pointer;letter-spacing:.1em;">'
+            f'▸ VIEW SOURCES ({len(sources)})</summary>{items}</details>'
+        )
 
     st.markdown(f"""
 <div class="msg-meta" style="padding:0 2rem;">
@@ -828,23 +795,22 @@ def typing_effect(placeholder, text: str):
 
 def render_sidebar():
     with st.sidebar:
-        # Logo
         st.markdown("""
 <div style="display:flex;align-items:center;gap:10px;
             padding-bottom:1rem;border-bottom:1px solid var(--border);margin-bottom:.5rem;">
   <div style="width:34px;height:34px;background:var(--accent);border-radius:9px;
               display:flex;align-items:center;justify-content:center;
-              font-size:16px;flex-shrink:0;box-shadow:0 0 16px var(--accent3);">⚡</div>
+              font-size:16px;flex-shrink:0;">⚡</div>
   <div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;
+    <div style="font-family:'Segoe UI',system-ui,sans-serif;font-weight:700;
                 font-size:.95rem;color:var(--text);">RAG Intelligence</div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;
+    <div style="font-family:'Courier New',Consolas,monospace;font-size:.6rem;
                 color:var(--accent);letter-spacing:.1em;">v2.0 · EXPLAINABLE</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-        # Theme mode toggle
+        # Theme toggle
         st.markdown('<div class="sidebar-label">⚙ Settings</div>', unsafe_allow_html=True)
         st.session_state.dark_mode = st.toggle(
             "Dark Mode", value=st.session_state.get("dark_mode", True)
@@ -884,7 +850,6 @@ def render_sidebar():
                     else:
                         st.error(res.get("message", "Upload failed"))
 
-        # File tags
         if st.session_state.uploaded_files:
             html = ['<div style="margin-top:.5rem">']
             for fname in st.session_state.uploaded_files:
@@ -900,11 +865,17 @@ def render_sidebar():
         if st.button("Clear Chat History", key="clear_btn"):
             st.session_state.messages = []
             st.rerun()
+        if st.button("Reset Index", key="reset_btn"):
+            with st.spinner("Resetting…"):
+                api_reset()
+                st.session_state.uploaded_files = []
+                st.session_state.db_reset_done = False
+            st.success("Index cleared")
+            st.rerun()
 
-        # Stats footer
         doc_count = len(st.session_state.uploaded_files)
         st.markdown(f"""
-<div style="margin-top:1.8rem;font-family:'JetBrains Mono',monospace;
+<div style="margin-top:1.8rem;font-family:'Courier New',Consolas,monospace;
             font-size:.62rem;color:var(--text-muted);line-height:2.0;">
   Backend → <span style="color:var(--accent);">localhost:8005</span><br>
   Retrieval → <span style="color:var(--accent);">FAISS + BM25</span><br>
@@ -919,7 +890,6 @@ def render_sidebar():
 # ══════════════════════════════════════════════════════════════
 
 def handle_user_input(prompt: str):
-    # Background fetch
     result_holder = {"data": None, "done": False}
     debug_mode = st.session_state.get("debug_mode", False)
 
@@ -932,11 +902,10 @@ def handle_user_input(prompt: str):
     try:
         from streamlit.runtime.scriptrunner import add_script_run_ctx
         add_script_run_ctx(thread)
-    except:
+    except Exception:
         pass
     thread.start()
 
-    # Animated loader
     loader_ph = st.empty()
     frame, tick = 0, 0
 
@@ -952,7 +921,6 @@ def handle_user_input(prompt: str):
     time.sleep(0.2)
     loader_ph.empty()
 
-    # Display answer
     data = result_holder["data"] or {}
     success = data.get("success", False)
 
@@ -968,7 +936,6 @@ def handle_user_input(prompt: str):
     sources = data.get("sources", [])
     eval_data = data.get("evaluation", {})
 
-    # Typing effect then render full bubble
     ph = st.empty()
     typing_effect(ph, answer)
 
@@ -1038,7 +1005,6 @@ def main():
     render_sidebar()
     inject_css(st.session_state.get("dark_mode", True))
 
-    # Chat header
     st.markdown("""
 <div class="chat-header" style="position:relative;">
   <div class="chat-title">Neural Document Assistant</div>
@@ -1049,7 +1015,6 @@ def main():
 </div>
 """, unsafe_allow_html=True)
 
-    # Empty state
     if not st.session_state.messages:
         st.markdown("""
 <div class="empty-state">
@@ -1058,7 +1023,7 @@ def main():
   <div class="empty-sub">
     Upload research papers in the sidebar,<br>
     then ask questions below.<br><br>
-    <span style="color:#00ff88;">⚡ Hybrid BM25 + FAISS · Cross-Encoder Reranking</span>
+    <span style="color:var(--accent);">⚡ Hybrid BM25 + FAISS · Cross-Encoder Reranking</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1067,11 +1032,8 @@ def main():
 
     if prompt := st.chat_input("Ask about your research papers…"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.rerun()
-
-    # Automatically generate an answer if the last message was from the user
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        handle_user_input(st.session_state.messages[-1]["content"])
+        render_user_bubble(prompt)
+        handle_user_input(prompt)
 
 
 if __name__ == "__main__":

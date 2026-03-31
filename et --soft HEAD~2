@@ -1,0 +1,207 @@
+[33mcommit 2b2e2f4873b95bc91f5f63cb206b9c1a80777abd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Tue Mar 31 19:37:48 2026 +0530
+
+    fix: removed secret and secured env variables
+
+[33mcommit 5ff91750e079269b2ed35d4d8141c63203563c5f[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Tue Mar 31 19:27:47 2026 +0530
+
+    feat: initial commit
+
+[33mcommit 377373d284e38bb189c8e7ecf46f2b699a829cbb[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;31mhf/main[m[33m, [m[1;31mhf/HEAD[m[33m)[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Mon Mar 30 17:26:07 2026 +0530
+
+    Fix bug
+
+[33mcommit 389ae8307dac45a585c6dbda5007b980d680a425[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Fri Mar 27 18:49:54 2026 +0530
+
+    port change
+
+[33mcommit a8c2a3b40718e67ceb14adeb1a2f78cb1844d971[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Fri Mar 27 18:37:57 2026 +0530
+
+    fix docker
+
+[33mcommit 7f1894814c4ac0dea767ad7462be5629cc85524d[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Fri Mar 27 18:32:19 2026 +0530
+
+    fix space
+
+[33mcommit 3d880f60fd5fe1b6489682bc295159269ec35af6[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Fri Mar 27 13:32:45 2026 +0530
+
+    fix:bad gateway
+
+[33mcommit c447e841f723af3518014f55919f482fa8c635a5[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Fri Mar 27 13:21:34 2026 +0530
+
+    fix timeout
+
+[33mcommit ffecd6bedb59489242028ea6ab0cbf61b256f638[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 23:32:18 2026 +0530
+
+    fix
+
+[33mcommit 818d7dcfc5d016baaf50a342b0fb781a2bfcac45[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 20:45:14 2026 +0530
+
+    fix: downgrade hugingface streamlit version to fix toggle css
+
+[33mcommit bd7a49cca0d9f27f2c3b5057162edaed23cb6e88[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 20:10:29 2026 +0530
+
+    ci: use HF_API_TOKEN secret name
+
+[33mcommit 681dc88f4da3d70fc631a529df92d2396fc79ea0[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 19:38:36 2026 +0530
+
+    ci: add GitHub Action to auto deploy to Hugging Face Spaces
+
+[33mcommit 6030c66d40014f5b69833cc08333aebd98fe035f[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 19:25:35 2026 +0530
+
+    fix readme
+
+[33mcommit ae77d2a181aaf6770ab6537d155c03b2d4e8ec09[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 19:18:01 2026 +0530
+
+    chore: add hugging face space configuration
+
+[33mcommit 7f8595900cc8eb7837853f87c31b796699e5ac42[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 18:35:27 2026 +0530
+
+    fix: load models in background to prevent Render port binding timeout
+
+[33mcommit 1b426a21c8cef2b04695b48b5e8cb158e6842895[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Thu Mar 26 18:27:44 2026 +0530
+
+    fix: upgrade spacy to 3.8.0 to fix Render deployment build errors
+
+[33mcommit 323948de36c97ac778affb0afc5b9a3156aee3ec[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Wed Mar 25 14:51:20 2026 +0530
+
+    Fix missing spacy and tiktoken dependencies
+
+[33mcommit 2fdb6dfe194b634e2e1196848d2ce226de71e30d[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Wed Mar 25 14:37:31 2026 +0530
+
+    Fix PyTorch dependency for Render deployment
+
+[33mcommit a0893705f7dd367db011b6690dd8a7661acf5dd3[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Wed Mar 25 14:27:08 2026 +0530
+
+    Prepare for Render and HF Spaces deployment
+
+[33mcommit 0d7c8c4c23802f2e2605685687a31647e236c5ce[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Wed Mar 25 01:23:55 2026 +0530
+
+    Fix-ui
+
+[33mcommit 90638c1f05e9a01b8f6afca603741eb1ee01cf22[m
+Merge: 3de17d7 827974f
+Author: Snehlata Kumari <169077724+Snehlata826@users.noreply.github.com>
+Date:   Tue Mar 24 18:09:45 2026 +0530
+
+    Merge pull request #1 from Snehlata826/feature/hallucination
+    
+    Feat:"Multi upload
+
+[33mcommit 827974f9f317361c278a0470ffbeb01ea5746168[m[33m ([m[1;31morigin/feature/hallucination[m[33m, [m[1;32mfeature/hallucination[m[33m)[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Tue Mar 24 18:02:20 2026 +0530
+
+    Feat:"Multi upload
+
+[33mcommit 3de17d74e1ea275bc657b8cd74933db7b275499d[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Tue Mar 24 15:51:12 2026 +0530
+
+    Fix bug
+
+[33mcommit a3d623d1611dc5a0006381369631b1a969acd59c[m
+Author: Snehlata826 <kumarisnehlata2005@gmail.com>
+Date:   Tue Mar 24 15:50:41 2026 +0530
+
+    Fix uploader component
+
+[33mcommit f9bd7c727a5817813cb7d710a5dcbc60c188ff5a[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 20:03:20 2026 +0530
+
+    fix: clean requirements
+
+[33mcommit 276a7991ce7067414624e7d95265cb79f4ecd6b2[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 19:17:05 2026 +0530
+
+    final fix for render deployment
+
+[33mcommit c34e3495df4b6c7098f08ba72b4f0d7284017820[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 18:47:56 2026 +0530
+
+    fix:lazy load pipeline
+
+[33mcommit 0045b40d734634ef7dc559c48e18aa82910a5f19[m
+Merge: 5a04d15 32bae48
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 17:30:31 2026 +0530
+
+    Merge branch 'main' of https://github.com/Snehlata826/Explainable-RAGAI
+
+[33mcommit 5a04d15a4df10cd47c86d17740dab54b37c128e4[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 17:30:19 2026 +0530
+
+    Updated
+
+[33mcommit 13268fc3a8564d50327b4f418be0791f1c79bb15[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 17:20:40 2026 +0530
+
+    Updated Requirements
+
+[33mcommit 32bae487758974059449f64f6872dd8402df1454[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 17:18:28 2026 +0530
+
+    Removed spacy to fix deployment
+
+[33mcommit e2b19697ce4f36da7e96cb972cbfc0f34a33dcae[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 17:15:53 2026 +0530
+
+    Spacy
+
+[33mcommit 939c2d4ac80c68ea63e995a69d9bdde434c94001[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Tue Mar 17 16:50:35 2026 +0530
+
+    Ui change
+
+[33mcommit 53ad6df42b37631ef8103964df8fff33de7ce0ac[m
+Author: Snehlata826 <kumarisnehlata2005@.com>
+Date:   Mon Mar 16 19:20:40 2026 +0530
+
+    First feat: Retrieve docs

@@ -1,13 +1,14 @@
 #!/bin/bash
+# Start FastAPI in background
+PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8005 &
 
-echo "Starting FastAPI backend..."
-uvicorn api.main:app --host 0.0.0.0 --port 8000 &
-
+# Wait for backend to be ready
 sleep 5
 
-echo "Starting Streamlit UI..."
-streamlit run ui/app.py \
+# Start Streamlit on port 7860 (required by HF Spaces)
+PYTHONPATH=. streamlit run ui/app.py \
   --server.port 7860 \
   --server.address 0.0.0.0 \
+  --server.headless true \
   --server.enableCORS false \
   --server.enableXsrfProtection false
