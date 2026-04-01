@@ -1,8 +1,8 @@
 # ⚡ GenAI RAG Copilot
 
-> **Production-grade Explainable RAG system for document Q&A**
+> **Ask questions across your research papers. Get grounded answers with citations and confidence scores.**
 > 
-> Hybrid FAISS + BM25 retrieval · Cross-encoder reranking · Grounded LLM answers · Confidence scoring · Source citations
+> Hybrid retrieval · Cross-encoder reranking · Multi-paper reasoning · Full explainability
 
 **🎯 [Try the Live Demo](https://huggingface.co/spaces/23bced49/explainable-ragai-ui)** ← Click here to explore!
 
@@ -10,44 +10,33 @@
 
 ## Overview
 
-GenAI RAG Copilot answers questions from your documents using a multi-stage retrieval-augmented generation pipeline. It combines semantic vector search with keyword search, reranks candidates using a cross-encoder, and generates grounded answers via LLM — with full explainability through confidence scores, hallucination risk flags, and source citations.
+GenAI RAG Copilot transforms how researchers interact with academic papers. Instead of manually skimming through documents, you can upload papers and ask natural language questions, receiving precise answers with source citations and confidence scores.
+
+The system answers **only from your uploaded papers** — if information isn't in the documents, it says so rather than hallucinating.
 
 ---
 
-## Architecture
+## How It Works
 
 ```
-User Query
-    │
-    ▼
-Query Rewriting + Expansion (4 semantic variants)
-    │
-    ▼
-Query Embedding (BAAI/bge-small-en-v1.5)
-    │
-    ├──► FAISS Vector Search  ──────┐
-    │                               ├──► Hybrid Fusion (0.65 · vec + 0.35 · BM25)
-    └──► BM25 Keyword Search  ──────┘
-                    │
-                    ▼
-        Top-15 Candidates
-                    │
-                    ▼
-    Cross-Encoder Reranking (ms-marco-MiniLM-L-6-v2)
-                    │
-                    ▼
-        Top-3 Context Chunks
-        (deduplicated · threshold-filtered · compressed)
-                    │
-                    ▼
-    LLM Answer Generation (Mistral-7B-Instruct)
-                    │
-                    ▼
-    Explainability Engine
-    (confidence · hallucination risk · source citations)
-                    │
-                    ▼
-    Response { answer, confidence, sources }
+Your Question
+      │
+      ▼
+Query Enhancement (rewriting + semantic expansion)
+      │
+      ▼
+Hybrid Search
+├──► FAISS Semantic Search (BAAI/bge-small-en-v1.5)
+└──► BM25 Keyword Search
+      │
+      ▼
+Cross-Encoder Reranking (ms-marco-MiniLM-L-6-v2)
+      │
+      ▼
+Grounded Answer Generation (Mistral-7B-Instruct)
+      │
+      ▼
+Response with Confidence & Citations
 ```
 
 ---
@@ -56,20 +45,18 @@ Query Embedding (BAAI/bge-small-en-v1.5)
 
 | Feature | Details |
 |---|---|
-| **Hybrid Retrieval** | FAISS vector search + BM25 keyword search with intelligent fusion |
-| **Query Intelligence** | Query rewriting and semantic expansion for better recall |
-| **Smart Reranking** | Cross-encoder reranking ensures most relevant context |
-| **Source Attribution** | Every answer includes cited sources with confidence scores |
-| **Hallucination Guards** | Word-overlap verification and grounding checks |
-| **Explainability** | Confidence labels (HIGH/MEDIUM/LOW) + hallucination risk assessment |
-| **Document Ingestion** | Supports PDF, TXT, Markdown with intelligent chunking |
-| **Multi-Doc Reasoning** | Compare answers across multiple uploaded documents |
-| **Evaluation Metrics** | Groundedness, hallucination rate, context utilization, F1 retrieval |
-| **REST API** | FastAPI with async processing and Swagger documentation |
-| **Modern UI** | Streamlit with dark/light mode and typing animations |
-| **Containerized** | Docker Compose for local deployment |
-| **HuggingFace Ready** | Auto-deploy to HuggingFace Spaces via GitHub Actions |
-| **Monitoring** | Structured JSON logging and latency tracking |
+| **Multiple formats** | PDF, TXT, Markdown support |
+| **Smart chunking** | Sentence-aware 350-token chunks with 100-token overlap |
+| **Hybrid retrieval** | FAISS + BM25 with configurable fusion weights |
+| **Reranking** | Cross-encoder ensures most relevant results |
+| **Multi-paper mode** | Compare answers across multiple documents |
+| **Source citations** | Every answer includes document name, relevance score, and evidence snippet |
+| **Confidence scoring** | Know how confident the system is in each answer |
+| **Hallucination guard** | Grounding verification prevents false information |
+| **REST API** | FastAPI with Swagger documentation |
+| **Modern UI** | Streamlit with dark/light mode |
+| **Docker ready** | One-command deployment |
+| **HuggingFace Spaces** | Auto-deploy via GitHub Actions |
 
 ---
 
@@ -77,15 +64,13 @@ Query Embedding (BAAI/bge-small-en-v1.5)
 
 | Component | Technology |
 |---|---|
-| **Backend API** | FastAPI (async, OpenAPI docs) |
-| **Frontend UI** | Streamlit (responsive, dark mode) |
-| **Embeddings** | BAAI/bge-small-en-v1.5 (384-dim, L2-normalized) |
-| **Vector Store** | FAISS IndexFlatIP (disk-persisted) |
-| **Keyword Search** | BM25Okapi |
+| **Backend** | FastAPI |
+| **Frontend** | Streamlit |
+| **Embeddings** | BAAI/bge-small-en-v1.5 |
+| **Vector Store** | FAISS |
+| **Keyword Search** | BM25 |
 | **Reranking** | cross-encoder/ms-marco-MiniLM-L-6-v2 |
-| **LLM** | Mistral-7B-Instruct-v0.2 (via HuggingFace Inference API) |
-| **Document Processing** | spaCy, PyPDF2, python-docx |
-| **Containerization** | Docker & Docker Compose |
+| **LLM** | Mistral-7B-Instruct-v0.2 (HuggingFace) |
 | **Language** | Python 3.10+ |
 
 ---
@@ -95,40 +80,37 @@ Query Embedding (BAAI/bge-small-en-v1.5)
 ```
 GenAI-RAG-Copilot/
 ├── api/
-│   ├── main.py                  # FastAPI endpoints (upload, query, feedback, health)
-│   └── rag_pipeline.py          # RAG orchestration (rewrite → retrieve → generate)
+│   ├── main.py              # FastAPI endpoints
+│   └── rag_pipeline.py      # RAG orchestration
 ├── config/
-│   └── settings.py              # Environment configuration management
+│   └── settings.py          # Configuration management
 ├── data/
-│   ├── raw_docs/                # Uploaded documents
-│   ├── faiss_index/             # Persisted FAISS index + metadata
-│   └── feedback/                # User feedback records (JSONL)
+│   ├── raw_docs/            # Uploaded papers
+│   └── faiss_index/         # Vector store
 ├── embeddings/
-│   └── embedding_generator.py   # Sentence transformer wrapper
+│   └── embedding_generator.py
 ├── ingestion/
-│   └── document_processor.py    # PDF/TXT parsing & chunking
+│   └── document_processor.py
 ├── retrieval/
-│   ├── hybrid_retriever.py      # FAISS + BM25 fusion
-│   ├── reranker.py              # Cross-encoder reranking
-│   └── context_retriever.py     # End-to-end retrieval pipeline
+│   ├── hybrid_retriever.py
+│   ├── reranker.py
+│   └── context_retriever.py
 ├── vector_store/
-│   └── faiss_store.py           # FAISS CRUD & persistence
+│   └── faiss_store.py
 ├── generation/
-│   ├── llm_client.py            # HuggingFace InferenceClient
-│   └── answer_generator.py      # Prompt engineering & grounding
+│   ├── llm_client.py
+│   └── answer_generator.py
 ├── explainability/
-│   └── explanation_engine.py    # Confidence scoring & source citation
+│   └── explanation_engine.py
 ├── evaluation/
-│   └── metrics.py               # RAG evaluation (groundedness, hallucination rate, F1)
+│   └── metrics.py
 ├── monitoring/
-│   └── logger.py                # Structured logging & performance tracking
+│   └── logger.py
 ├── ui/
-│   └── app.py                   # Streamlit frontend
-├── requirements.txt
-├── Dockerfile
+│   └── app.py
 ├── docker-compose.yml
-├── start.sh                     # Startup script
-└── .env.example
+├── Dockerfile
+└── requirements.txt
 ```
 
 ---
@@ -137,7 +119,7 @@ GenAI-RAG-Copilot/
 
 - Python 3.10+
 - [HuggingFace](https://huggingface.co) account with API token
-- Access to Mistral-7B-Instruct model (or configure alternative LLM)
+- Access to Mistral-7B-Instruct model
 
 ---
 
@@ -160,8 +142,8 @@ python -m spacy download en_core_web_sm
 
 ```bash
 cp .env.example .env
-# Set: HF_API_TOKEN (required)
-# Optional: HF_MODEL, CHUNK_SIZE, TOP_K_RETRIEVAL, etc.
+# Add your HuggingFace token:
+# HF_API_TOKEN=hf_your_token_here
 ```
 
 ### 3. Start Backend API
@@ -170,9 +152,7 @@ cp .env.example .env
 PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
 ```
 
-**Swagger UI**: [http://localhost:8005/docs](http://localhost:8005/docs)
-
-> Models load asynchronously — check `/health` endpoint for status.
+**API Documentation**: [http://localhost:8005/docs](http://localhost:8005/docs)
 
 ### 4. Start Frontend UI
 
@@ -180,13 +160,11 @@ PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
 PYTHONPATH=. streamlit run ui/app.py
 ```
 
-**UI**: [http://localhost:8501](http://localhost:8501)
+**Open**: [http://localhost:8501](http://localhost:8501)
 
 ---
 
 ## Docker Deployment
-
-Run both services with a single command:
 
 ```bash
 docker-compose up --build
@@ -195,164 +173,125 @@ docker-compose up --build
 | Service | URL |
 |---|---|
 | FastAPI | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/docs |
-| Streamlit | http://localhost:8501 |
+| API Docs | http://localhost:8000/docs |
+| Streamlit UI | http://localhost:8501 |
+
+---
+
+## Usage Examples
+
+**Single Paper**
+- "What dataset was used for evaluation?"
+- "What are the main limitations?"
+- "Summarize the methodology section."
+
+**Multiple Papers**
+- "How do these papers differ in their approach?"
+- "Which paper reports higher accuracy?"
+- "What do all these papers agree on?"
 
 ---
 
 ## API Reference
 
 ### `POST /upload`
-
-Upload a document for indexing.
+Upload a research paper for indexing.
 
 ```bash
 curl -X POST http://localhost:8005/upload \
-  -F "file=@document.pdf"
+  -F "file=@paper.pdf"
 ```
-
-**Response:**
-```json
-{
-  "filename": "document.pdf",
-  "chunks_indexed": 42,
-  "message": "Indexed 42 chunks."
-}
-```
-
----
 
 ### `POST /query`
-
-Ask a question about indexed documents.
+Ask a question about indexed papers.
 
 ```bash
 curl -X POST http://localhost:8005/query \
   -H "Content-Type: application/json" \
-  -d '{"question": "What is the main topic?"}'
+  -d '{"question": "What is the main contribution?"}'
 ```
 
-**Response:**
-```json
-{
-  "answer": "Based on the documents: ...",
-  "confidence": 0.85,
-  "sources": [
-    {
-      "document": "document.pdf",
-      "chunk_id": 5,
-      "score": 0.92,
-      "snippet": "..."
-    }
-  ]
-}
-```
-
-Enable `DEBUG=true` in `.env` for full evaluation metrics.
-
----
-
-### `POST /feedback`
-
-Submit user feedback (rating 1-5).
-
-```bash
-curl -X POST http://localhost:8005/feedback \
-  -H "Content-Type: application/json" \
-  -d '{"query": "...", "answer": "...", "rating": 5}'
-```
-
----
-
-### `GET /health`
-
-Check API and model status.
-
-```bash
-curl http://localhost:8005/health
-```
-
----
+**Response includes:**
+- Answer grounded in paper content
+- Confidence score (0-1)
+- Source citations with snippets
+- Hallucination risk assessment
 
 ### `DELETE /reset`
+Clear all indexed papers.
 
-Clear the vector store and all indexed documents.
+### `GET /health`
+Check API and model status.
 
 ---
 
 ## Configuration
 
-All settings in `config/settings.py` can be overridden via environment variables:
-
 | Variable | Default | Description |
 |---|---|---|
 | `HF_API_TOKEN` | *(required)* | HuggingFace API token |
-| `HF_MODEL` | `mistralai/Mistral-7B-Instruct-v0.2` | Chat model |
+| `HF_MODEL` | `mistralai/Mistral-7B-Instruct-v0.2` | LLM model |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | Embedding model |
 | `CHUNK_SIZE` | `350` | Tokens per chunk |
 | `CHUNK_OVERLAP` | `100` | Overlap between chunks |
 | `TOP_K_RETRIEVAL` | `15` | Candidates before reranking |
-| `TOP_K_RERANK` | `3` | Final contexts after reranking |
-| `SIMILARITY_THRESHOLD` | `0.25` | Min retrieval score |
-| `VECTOR_WEIGHT` | `0.65` | Weight for vector search in hybrid fusion |
-| `BM25_WEIGHT` | `0.35` | Weight for keyword search in hybrid fusion |
-| `LLM_TEMPERATURE` | `0.1` | Sampling temperature |
-| `DEBUG` | `false` | Expose evaluation metrics |
+| `TOP_K_RERANK` | `3` | Final contexts for LLM |
+| `VECTOR_WEIGHT` | `0.65` | Weight for semantic search |
+| `BM25_WEIGHT` | `0.35` | Weight for keyword search |
+| `LLM_TEMPERATURE` | `0.1` | Controls randomness (lower = more grounded) |
+| `DEBUG` | `false` | Enable detailed response metrics |
 
 ---
 
-## Explainability Engine
+## Explainability
 
 Every response includes:
 
-- **Confidence Score** (0-1) — Normalized relevance with hallucination awareness
-- **Confidence Label** — HIGH (≥0.75) · MEDIUM (≥0.50) · LOW (<0.50)
-- **Hallucination Risk** — LOW / MEDIUM / HIGH assessment
-- **Source Citations** — Per-chunk evidence with document name and relevance score
-- **Grounding Verification** — Word-overlap check ensures answer is grounded in retrieved context
+- **Confidence Score** (0-1) — Relevance score from cross-encoder
+- **Confidence Label** — HIGH / MEDIUM / LOW
+- **Hallucination Risk** — Risk assessment based on grounding
+- **Source Citations** — Document, relevance score, and evidence snippet
+- **Grounding Verification** — Ensures answer is grounded in retrieved context
 
 ---
 
 ## Evaluation Metrics
 
-When `DEBUG=true`, responses include:
+Available in debug mode:
 
-| Metric | Description |
-|---|---|
-| **Groundedness** | Fraction of answer words found in retrieved context |
-| **Hallucination Rate** | Inverse of groundedness |
-| **Answer Relevance** | Similarity between answer and query |
-| **Context Utilization** | Fraction of context used in answer |
-| **Retrieval F1** | Precision and recall of document retrieval |
-| **Overall Score** | Weighted aggregate metric |
+- **Groundedness** — Fraction of answer grounded in context
+- **Hallucination Rate** — Inverse of groundedness
+- **Answer Relevance** — Similarity to original question
+- **Context Utilization** — How much context was used
+- **Retrieval F1** — Precision and recall of document retrieval
 
 ---
 
-## Monitoring & Logging
+## Extending the System
 
-All events logged to `logs/rag_copilot.log`:
-
-```json
-{
-  "timestamp": "2024-01-15T10:30:45Z",
-  "query": "What is RAG?",
-  "confidence": 0.87,
-  "latency_ms": 1250.5,
-  "num_sources": 3
-}
-```
+| Goal | File to Modify |
+|---|---|
+| Support new document formats | `ingestion/document_processor.py` |
+| Use different LLM | `generation/llm_client.py` |
+| Tune retrieval weights | `config/settings.py` |
+| Add custom evaluation | `evaluation/metrics.py` |
+| Integrate another vector DB | `vector_store/faiss_store.py` |
 
 ---
 
-## Extending the Project
+## Troubleshooting
 
-| Goal | Where to modify |
-|---|---|
-| Use different LLM (OpenAI, Ollama) | `generation/llm_client.py` |
-| Add document formats (DOCX, HTML) | `ingestion/document_processor.py` |
-| Swap FAISS for other vector DB | `vector_store/faiss_store.py` |
-| Implement streaming responses | `api/main.py` |
-| Build custom evaluation metrics | `evaluation/metrics.py` |
+**"HF_API_TOKEN is required"**
+→ Set your token in `.env` file or as an environment variable.
+
+**Models loading slowly**
+→ Check `/health` endpoint. Models load asynchronously in the background.
+
+**FAISS not found**
+→ Run `pip install faiss-cpu` (or `faiss-gpu` for GPU acceleration).
+
+**Port already in use**
+→ Change port in startup command: `--port 8006`
 
 ---
 
@@ -362,14 +301,6 @@ MIT License
 
 ---
 
-## Support & Contributions
-
-Found a bug? Have a feature request? Open an issue on GitHub!
-
-Contributions welcome — see CONTRIBUTING.md for guidelines.
-
----
-
 ## Disclaimer
 
-This system generates answers based on document content. **Always verify critical information** with authoritative sources. The model may occasionally produce inaccurate or incomplete responses despite grounding mechanisms.
+This system generates answers based solely on your uploaded documents. **Always verify critical information** with original sources. The model may occasionally produce incomplete or inaccurate responses despite grounding mechanisms.
