@@ -611,7 +611,7 @@ def api_upload(file) -> dict:
     try:
         r = requests.post(
             f"{API_BASE}/upload",
-            files={"file": (file.name, file.getvalue(), file.type)},
+            files={"file": (file.name, file.getvalue())},
             timeout=600,
         )
         if r.status_code == 200:
@@ -824,10 +824,10 @@ def render_sidebar():
 
         # Documents
         st.markdown('<div class="sidebar-label">📂 Documents</div>', unsafe_allow_html=True)
-
+        st.set_option('server.maxUploadSize', 200)
         uploaded_files = st.file_uploader(
             "Upload PDF or TXT",
-            type=["pdf", "txt", "md"],
+            type=["pdf","txt"],
             accept_multiple_files=True,
             label_visibility="collapsed",
             key="file_uploader",
@@ -881,7 +881,7 @@ def render_sidebar():
         st.markdown(f"""
 <div style="margin-top:1.8rem;font-family:'Courier New',Consolas,monospace;
             font-size:.62rem;color:var(--text-muted);line-height:2.0;">
-  Backend → <span style="color:var(--accent);">localhost:8005</span><br>
+  Backend → <span style="color:var(--accent);">{API_BASE}</span><br>
   Retrieval → <span style="color:var(--accent);">FAISS + BM25</span><br>
   Reranker → <span style="color:var(--accent);">cross-encoder</span><br>
   Docs → <span style="color:var(--accent);">{doc_count} indexed</span>
