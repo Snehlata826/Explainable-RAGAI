@@ -24,10 +24,11 @@ from requests.exceptions import ConnectionError, Timeout
 def get_backend_url():
     space_id = os.getenv("SPACE_ID")
 
+    # ✅ Running on Hugging Face
     if space_id:
-        owner, name = space_id.split("/")
-        return f"https://{owner}-{name.replace('_','-')}.hf.space"
+        return "http://127.0.0.1:8005"   # 🔥 INTERNAL CONTAINER CALL
 
+    # ✅ Local
     return "http://localhost:8005"
 
 API_BASE = get_backend_url()
