@@ -21,13 +21,16 @@ from requests.exceptions import ConnectionError, Timeout
 
 
 # Detect environment
-IS_HF = os.getenv("SPACE_ID") is not None
+def get_backend_url():
+    space_id = os.getenv("SPACE_ID")
 
-if IS_HF:
-    API_BASE = ""   # Hugging Face (relative path)
-else:
-    API_BASE = "http://localhost:8005"  # local backend
+    if space_id:
+        owner, name = space_id.split("/")
+        return f"https://{owner}-{name.replace('_','-')}.hf.space"
 
+    return "http://localhost:8005"
+
+API_BASE = get_backend_url()
 
 # ══════════════════════════════════════════════════════════════
 # THEME & CSS

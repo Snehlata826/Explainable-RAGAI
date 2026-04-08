@@ -18,7 +18,8 @@ COPY . .
 RUN mkdir -p data/raw_docs data/faiss_index data/feedback logs
 
 ENV PYTHONPATH=/app
-ENV API_BASE_URL=http://localhost:8005
+# Change this line
+ENV API_BASE_URL=http://0.0.0.0:7860
 
 # 🔐 Do NOT hardcode secrets
 # Use environment variables instead
